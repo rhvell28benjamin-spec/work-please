@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trade Log">
+    <meta name="theme-color" content="#0f0820">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' style='stop-color:%237c3aed'/%3E%3Cstop offset='1' style='stop-color:%235b21b6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' fill='url(%23g)' rx='40'/%3E%3Crect x='40' y='50' width='100' height='80' rx='8' fill='white' opacity='0.1'/%3E%3Crect x='50' y='70' width='15' height='40' fill='white'/%3E%3Crect x='72' y='60' width='15' height='50' fill='%2310b981'/%3E%3Crect x='94' y='80' width='15' height='30' fill='%23ef4444'/%3E%3Crect x='116' y='65' width='15' height='45' fill='%23f59e0b'/%3E%3C/svg%3E">
+    <title>Trade Log</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #0a0515;
+            --bg-secondary: #110a1f;
+            --bg-tertiary: #1a1128;
+            --bg-card: #1f1733;
+            --bg-card-hover: #261d3d;
+            --purple-primary: #8b5cf6;
+            --purple-light: #a78bfa;
+            --purple-dark: #6d28d9;
+            --text-primary: #ffffff;
+            --text-secondary: #c4b5fd;
+            --text-muted: #a78bfa;
+            --border-color: #2d1f47;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            letter-spacing: -0.01em;
+        }
+        
+        /* Sidebar / Hamburger Menu */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.closed {
+            transform: translateX(-240px);
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .sidebar-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .menu-item {
+            padding: 12px 16px;
+            margin: 4px 0;
+            border-radius: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95em;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .menu-item:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        
+        .menu-item.active {
+            background: var(--purple-primary);
+            color: white;
+        }
+        
+        .menu-icon {
+            font-size: 1.2em;
+        }
+        
+        /* Mobile menu toggle */
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-240px);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .edit-mode-active .main-content {
+            padding-bottom: 120px;
+        }
+        
+        @media (max-width: 768px) {
+            .edit-mode-active .main-content {
+                padding-bottom: 160px;
+            }
+        }
+        
+        .header {
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            padding: 20px 25px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(139, 92, 246, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        
+        .stats-btn {
+            background: linear-gradient(135deg, var(--purple-primary), var(--purple-dark));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        
+        .stats-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        .stats-btn:active {
+            transform: translateY(0);
+        }
+        
+        .container {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .card {
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(139, 92, 246, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+        
+        .info-text {
+            font-size: 1em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .warning-box {
+            background: rgba(31, 23, 51, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(245, 158, 11, 0.1);
+        }
+        
+        .warning-box h3 {
+            color: #fbbf24;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .warning-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .warning-box li {
+            color: #fde68a;
+            padding: 6px 0;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-align: center;
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(139, 92, 246, 0.1);
+        }
+        
+        .input-group input[type="file"] {
+            padding: 14px;
+            font-weight: normal;
+            text-align: left;
+            cursor: pointer;
+        }
+        
+        .input-group input {
+            text-transform: uppercase;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--purple-primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .photo-preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .photo-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 14px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 18px 25px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-red {
+            background: rgba(185, 28, 28, 0.4);
+            color: #fecaca;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        
+        .btn-red:hover {
+            background: rgba(185, 28, 28, 0.6);
+        }
+        
+        .btn-green {
+            background: rgba(4, 120, 87, 0.4);
+            color: #d1fae5;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        
+        .btn-green:hover {
+            background: rgba(4, 120, 87, 0.6);
+        }
+        
+        .btn-gray {
+            background: rgba(31, 23, 51, 0.4);
+            color: var(--text-secondary);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .btn-gray:hover {
+            background: rgba(31, 23, 51, 0.6);
+        }
+        
+        .btn-primary {
+            background: rgba(124, 58, 237, 0.4);
+            color: #e9d5ff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        
+        .btn-primary:hover {
+            background: rgba(124, 58, 237, 0.6);
+        }
+        
+        .btn-success {
+            background: rgba(4, 120, 87, 0.4);
+            color: #d1fae5;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        
+        .btn-success:hover {
+            background: rgba(4, 120, 87, 0.6);
+        }
+        
+        .btn-danger {
+            background: rgba(185, 28, 28, 0.4);
+            color: #fecaca;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+        
+        .btn-danger:hover {
+            background: rgba(185, 28, 28, 0.6);
+        }
+        
+        .success-badge {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 0.7em;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .back-btn {
+            margin-top: 20px;
+            background: rgba(31, 23, 51, 0.3);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-secondary);
+            padding: 14px;
+            font-size: 0.95em;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(31, 23, 51, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: var(--text-primary);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        
+        .back-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .icon {
+            font-size: 1.4em;
+        }
+        
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border-color);
+            transition: all 0.3s;
+        }
+        
+        .dot.active {
+            background: var(--purple-primary);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+        
+        .step-label {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .trade-summary {
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            padding: 22px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--purple-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(139, 92, 246, 0.1);
+        }
+        
+        .trade-summary-item {
+            margin: 12px 0;
+            font-size: 1em;
+            color: var(--text-secondary);
+        }
+        
+        .trade-summary-item strong {
+            color: var(--text-primary);
+        }
+        
+        .saved-message {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+            padding: 18px;
+            border-radius: 12px;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            margin: 18px 0;
+            font-weight: 600;
+            text-align: center;
+            color: #6ee7b7;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .modal-content {
+            background: rgba(31, 23, 51, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .close-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 1.3em;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+        
+        .stat-card {
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            padding: 18px;
+            border-radius: 14px;
+            margin: 12px 0;
+            border-left: 4px solid var(--purple-primary);
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(139, 92, 246, 0.1);
+        }
+        
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+        }
+        
+        .stat-title {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .bar-chart {
+            margin: 35px 0;
+        }
+        
+        .bar-item {
+            margin: 28px 0;
+        }
+        
+        .bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        /* New Accordion Scenario Styles */
+        .scenario-accordion {
+            margin-top: 20px;
+        }
+
+        .scenario-item {
+            margin-bottom: 12px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .scenario-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-header:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .scenario-header:active {
+            transform: scale(0.98);
+        }
+
+        .scenario-title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .scenario-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1em;
+        }
+
+        .scenario-stats {
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+
+        .scenario-bar-container {
+            display: flex;
+            gap: 2px;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .scenario-bar-win {
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .scenario-bar-loss {
+            background: var(--danger);
+            transition: width 0.3s ease;
+        }
+
+        .scenario-toggle {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+            color: var(--purple-light);
+            margin-left: 10px;
+        }
+
+        .scenario-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .scenario-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .scenario-content.open {
+            max-height: 3000px;
+        }
+
+        .trade-list {
+            padding: 15px;
+        }
+
+        .trade-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trade-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--purple-primary);
+        }
+
+        .trade-card:active {
+            transform: scale(0.98);
+        }
+
+        .trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .trade-stock {
+            font-weight: 600;
+            color: var(--purple-light);
+            font-size: 1.1em;
+        }
+
+        .trade-result {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .trade-result.win {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .trade-result.loss {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .trade-time {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .trade-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .trade-image {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .no-trades-accordion {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+        }
+        
+        .bar-container {
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(139, 92, 246, 0.2);
+            height: 45px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            transition: width 0.5s ease;
+            min-width: 40px;
+            font-size: 0.9em;
+        }
+        
+        .bar-fill-win {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+        
+        .bar-fill-loss {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        
+        .bar-stocks {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            padding: 10px;
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+        }
+        
+        .trade-history {
+            margin-top: 35px;
+        }
+        
+        .history-item {
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 16px;
+            border-radius: 14px;
+            margin: 10px 0;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .history-item:hover {
+            border-color: var(--purple-primary);
+            background: var(--bg-card-hover);
+            transform: translateX(4px);
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .history-details {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+        
+        .history-photo {
+            margin-top: 12px;
+        }
+        
+        .history-photo img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .win {
+            color: var(--success);
+        }
+        
+        .loss {
+            color: var(--danger);
+        }
+        
+        .edit-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            font-size: 1em;
+            margin-bottom: 18px;
+            background: rgba(31, 23, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(139, 92, 246, 0.1);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .edit-input:focus {
+            outline: none;
+            border-color: var(--purple-primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        textarea.edit-input {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Edit Mode Styles */
+        .editable {
+            outline: 2px dashed rgba(139, 92, 246, 0.5);
+            outline-offset: 4px;
+            cursor: text;
+            transition: all 0.2s;
+            border-radius: 4px;
+            padding: 2px 4px;
+            min-height: 20px;
+            display: inline-block;
+        }
+        
+        .editable:hover {
+            outline-color: var(--purple-primary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .editable:focus {
+            outline: 2px solid var(--purple-primary);
+            background: rgba(139, 92, 246, 0.15);
+        }
+        
+        .edit-mode-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(31, 23, 51, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid var(--purple-primary);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 16px;
+            font-weight: 600;
+            z-index: 999;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+        }
+        
+        .edit-mode-indicator-title {
+            font-size: 0.95em;
+            color: var(--purple-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .edit-mode-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .edit-mode-buttons button {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .edit-save-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .edit-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .edit-cancel-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .edit-cancel-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .edit-mode-indicator {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                min-width: auto;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .edit-mode-buttons {
+                width: 100%;
+            }
+            
+            .edit-mode-buttons button {
+                flex: 1;
+            }
+        }
+        
+        .edit-mode-active .menu-item#editModeBtn {
+            background: var(--purple-primary);
+            color: white;
+        }
+        
+        .edit-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .clear-data-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 25px;
+            transition: all 0.2s;
+        }
+        
+        .clear-data-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .skip-photo {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+        
+        .skip-photo a {
+            color: var(--purple-light);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .skip-photo a:hover {
+            color: var(--purple-primary);
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 18px;
+            color: var(--purple-primary);
+            font-weight: 600;
+        }
+        
+        .spinner {
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--purple-primary);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            animation: spin 1s linear infinite;
+            margin: 12px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            padding: 14px;
+            border-radius: 10px;
+            margin: 12px 0;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">📊</div>
+            <div class="sidebar-title">Trade Log</div>
+        </div>
+        
+        <button class="menu-item active" onclick="showScreen('start'); closeSidebarMobile();">
+            <span class="menu-icon">➕</span>
+            <span>New Trade</span>
+        </button>
+        
+        <button class="menu-item" onclick="showStats(); closeSidebarMobile();">
+            <span class="menu-icon">📈</span>
+            <span>Statistics</span>
+        </button>
+        
+        <button class="menu-item" onclick="showHistory(); closeSidebarMobile();">
+            <span class="menu-icon">📋</span>
+            <span>History</span>
+        </button>
+        
+        <button class="menu-item" onclick="exportData(); closeSidebarMobile();">
+            <span class="menu-icon">📤</span>
+            <span>Export Data</span>
+        </button>
+        
+        <button class="menu-item" onclick="document.getElementById('importFile').click(); closeSidebarMobile();">
+            <span class="menu-icon">📥</span>
+            <span>Import Data</span>
+        </button>
+        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+        
+        <button class="menu-item" onclick="openInSafari(); closeSidebarMobile();">
+            <span class="menu-icon">🌐</span>
+            <span>View in Safari</span>
+        </button>
+        
+        <button class="menu-item" id="editModeBtn" onclick="toggleEditMode(); closeSidebarMobile();">
+            <span class="menu-icon">✏️</span>
+            <span>Edit Mode</span>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>📊 Trade Log</h1>
+            <button class="stats-btn" onclick="showStats()">View Stats</button>
+        </div>
+
+        <div class="container">
+            <div class="card" id="screen"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📈 Your Stats</div>
+                <button class="close-btn" onclick="closeStats()">×</button>
+            </div>
+            <div id="statsContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="editModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title">Edit Trade</div>
+                <button class="close-btn" onclick="closeEdit()">×</button>
+            </div>
+            <div id="editContent"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="photoModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">Chart Screenshot</div>
+                <button class="close-btn" onclick="closePhotoModal()">×</button>
+            </div>
+            <div id="photoModalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // IndexedDB setup
+        const DB_NAME = 'DojiTradeLogDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'trades';
+        let db = null;
+        
+        // Edit mode state
+        let editMode = false;
+        let customContent = {};
+        
+        // Load custom content from localStorage
+        function loadCustomContent() {
+            const saved = localStorage.getItem('tradeLogCustomContent');
+            if (saved) {
+                try {
+                    customContent = JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading custom content:', e);
+                    customContent = {};
+                }
+            }
+        }
+        
+        // Save custom content to localStorage
+        function saveCustomContent() {
+            localStorage.setItem('tradeLogCustomContent', JSON.stringify(customContent));
+        }
+        
+        // Toggle edit mode
+        function toggleEditMode() {
+            editMode = !editMode;
+            const body = document.body;
+            const indicator = document.getElementById('editModeIndicator');
+            const btn = document.getElementById('editModeBtn');
+            
+            if (editMode) {
+                body.classList.add('edit-mode-active');
+                btn.classList.add('active');
+                if (!indicator) {
+                    const div = document.createElement('div');
+                    div.id = 'editModeIndicator';
+                    div.className = 'edit-mode-indicator';
+                    div.innerHTML = `
+                        <div class="edit-mode-indicator-title">
+                            <span>✏️</span>
+                            <span>Edit Mode Active</span>
+                        </div>
+                        <div class="edit-mode-buttons">
+                            <button class="edit-save-btn" onclick="saveEditMode()">💾 Save</button>
+                            <button class="edit-cancel-btn" onclick="cancelEditMode()">✕ Cancel</button>
+                        </div>
+                    `;
+                    body.appendChild(div);
+                }
+                makeEditable();
+            } else {
+                body.classList.remove('edit-mode-active');
+                btn.classList.remove('active');
+                if (indicator) {
+                    indicator.remove();
+                }
+                removeEditable();
+            }
+        }
+        
+        // Save edit mode changes
+        function saveEditMode() {
+            saveCustomContent();
+            toggleEditMode();
+            alert('✅ Changes saved successfully!');
+        }
+        
+        // Cancel edit mode and revert changes
+        function cancelEditMode() {
+            if (confirm('Cancel editing? Any unsaved changes will be lost.')) {
+                // Reload custom content from saved state
+                loadCustomContent();
+                toggleEditMode();
+                // Refresh the current screen
+                const currentScreen = currentPath[currentPath.length - 1];
+                currentPath = [];
+                if (currentScreen) {
+                    showScreen(currentScreen);
+                } else {
+                    showScreen('start');
+                }
+            }
+        }
+        
+        // Make elements editable
+        function makeEditable() {
+            // Target specific elements for editing
+            const selectors = [
+                '.question',
+                '.info-text',
+                '.step-label',
+                '.btn span:not(.icon)',
+                '.input-group label',
+                '.warning-box h3',
+                '.warning-box li',
+                '.trade-summary-item',
+                '.skip-photo a',
+                '.header h1',
+                '.stat-title',
+                '.bar-header span',
+                '.sidebar-title',
+                '.menu-item span:not(.menu-icon)'
+            ];
+            
+            selectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(el => {
+                    if (!el.classList.contains('editable')) {
+                        el.contentEditable = true;
+                        el.classList.add('editable');
+                        
+                        // Load saved content if exists
+                        const key = generateContentKey(el);
+                        if (customContent[key]) {
+                            el.textContent = customContent[key];
+                        }
+                        
+                        // Save on blur
+                        el.addEventListener('blur', function() {
+                            const key = generateContentKey(this);
+                            customContent[key] = this.textContent;
+                            saveCustomContent();
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Remove editable state
+        function removeEditable() {
+            document.querySelectorAll('.editable').forEach(el => {
+                el.contentEditable = false;
+                el.classList.remove('editable');
+            });
+        }
+        
+        // Generate unique key for element
+        function generateContentKey(element) {
+            let key = element.className.replace('editable', '').trim();
+            let parent = element.parentElement;
+            let path = [];
+            
+            while (parent && path.length < 3) {
+                if (parent.className) {
+                    path.push(parent.className.split(' ')[0]);
+                }
+                parent = parent.parentElement;
+            }
+            
+            return path.join('_') + '_' + key + '_' + element.textContent.substring(0, 20);
+        }
+        
+        // Apply custom content to elements
+        function applyCustomContent() {
+            Object.keys(customContent).forEach(key => {
+                const elements = document.querySelectorAll('.question, .info-text, .step-label, .btn span, .input-group label, .warning-box h3, .warning-box li, .trade-summary-item, .skip-photo a, .header h1, .stat-title, .bar-header span, .sidebar-title, .menu-item span');
+                elements.forEach(el => {
+                    if (generateContentKey(el) === key && !el.querySelector('input') && !el.querySelector('select')) {
+                        el.textContent = customContent[key];
+                    }
+                });
+            });
+        }
+
+        // Initialize IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                        objectStore.createIndex('date', 'date', { unique: false });
+                        objectStore.createIndex('stock', 'stock', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // IndexedDB helper functions
+        function getAllTrades() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.getAll();
+                
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function addTrade(trade) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.add(trade);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function updateTrade(id, trade) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                trade.id = id;
+                const request = objectStore.put(trade);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function deleteTrade(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.delete(id);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function clearAllTrades() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const objectStore = transaction.objectStore(STORE_NAME);
+                const request = objectStore.clear();
+                
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // Get storage usage estimate
+        async function getStorageEstimate() {
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                const estimate = await navigator.storage.estimate();
+                return {
+                    usage: estimate.usage || 0,
+                    quota: estimate.quota || 0,
+                    usageInMB: ((estimate.usage || 0) / (1024 * 1024)).toFixed(2),
+                    quotaInMB: ((estimate.quota || 0) / (1024 * 1024)).toFixed(2),
+                    percentUsed: estimate.quota ? ((estimate.usage / estimate.quota) * 100).toFixed(1) : 0
+                };
+            }
+            return null;
+        }
+
+        let currentPath = [];
+        let currentTrade = {
+            stock: '',
+            time: '',
+            scenario: '',
+            scenarioName: '',
+            successRate: '',
+            worked: null,
+            date: null,
+            photo: null,
+            notes: ''
+        };
+        
+        const screens = {
+            start: {
+                dots: 0,
+                step: "New Trade",
+                question: "Enter Stock Ticker",
+                isInput: true
+            },
+            
+            timeSelect: {
+                dots: 0,
+                step: "New Trade",
+                question: "What time did you trade?",
+                isTimeSelect: true
+            },
+            
+            photoUpload: {
+                dots: 0,
+                step: "Chart Screenshot",
+                question: "Upload Chart Screenshot (Optional)",
+                isPhotoUpload: true
+            },
+            
+            firstCandle: {
+                dots: 1,
+                step: "Step 1 of 3",
+                question: "What's the NEXT candle after the doji?",
+                options: [
+                    { text: "Red Candle", icon: "🔴", color: "red", action: "redPath" },
+                    { text: "Green Candle", icon: "🟢", color: "green", action: "greenPath" },
+                    { text: "Another Doji", icon: "⚪", color: "gray", action: "anotherDoji" }
+                ]
+            },
+            
+            anotherDoji: {
+                dots: 1,
+                step: "Waiting...",
+                question: "Keep waiting through dojis",
+                info: "Wait for the next candle that is either RED or GREEN",
+                options: [
+                    { text: "Now it's Red", icon: "🔴", color: "red", action: "redPath" },
+                    { text: "Now it's Green", icon: "🟢", color: "green", action: "greenPath" }
+                ]
+            },
+            
+            redPath: {
+                dots: 2,
+                step: "Step 2 of 3",
+                question: "Where is the 2nd lower low?",
+                info: "Find 1st low (red + green combo), then find 2nd lower low",
+                options: [
+                    { text: "Stays in middle area", icon: "✓", color: "red", action: "redMiddle", badge: "LIKELY" },
+                    { text: "Below original move's low", icon: "✗", color: "red", action: "redBelow", badge: "50/50" }
+                ]
+            },
+            
+            greenPath: {
+                dots: 2,
+                step: "Step 2 of 3",
+                question: "Where was the doji positioned?",
+                info: "Was the doji near the top or in the middle?",
+                options: [
+                    { text: "Near top of move", icon: "📍", color: "green", action: "greenTop", badge: "70%" },
+                    { text: "Middle (flag pattern)", icon: "🚩", color: "green", action: "greenMiddle", badge: "80%" }
+                ]
+            },
+            
+            redMiddle: {
+                dots: 3,
+                step: "Step 3 of 3",
+                question: "Did this trade work?",
+                scenario: "1",
+                scenarioName: "Red → Stays in Middle",
+                successRate: "LIKELY",
+                isOutcome: true
+            },
+            
+            redBelow: {
+                dots: 3,
+                step: "Step 3 of 3",
+                question: "Did this trade work?",
+                scenario: "2",
+                scenarioName: "Red → Below Original Low",
+                successRate: "50/50 UNLIKELY",
+                isOutcome: true
+            },
+            
+            greenTop: {
+                dots: 3,
+                step: "Step 3 of 3",
+                question: "Did this trade work?",
+                scenario: "3",
+                scenarioName: "Green → Doji Near Top",
+                successRate: "70% VERY LIKELY",
+                isOutcome: true
+            },
+            
+            greenMiddle: {
+                dots: 3,
+                step: "Step 3 of 3",
+                question: "Did this trade work?",
+                scenario: "4",
+                scenarioName: "Green → Doji in Middle",
+                successRate: "80% SHOULD WORK",
+                isOutcome: true
+            },
+            
+            saved: {
+                dots: 3,
+                step: "Complete",
+                question: "Trade Logged! ✅",
+                isSaved: true
+            }
+        };
+        
+        function showScreen(screenName) {
+            currentPath.push(screenName);
+            const screen = screens[screenName];
+            const container = document.getElementById('screen');
+            
+            let html = '';
+            
+            if (screen.dots > 0) {
+                html += '<div class="progress-dots">';
+                for (let i = 0; i < 3; i++) {
+                    html += `<div class="dot ${i < screen.dots ? 'active' : ''}"></div>`;
+                }
+                html += '</div>';
+            }
+            
+            html += `<div class="step-label">${screen.step}</div>`;
+            html += `<div class="question">${screen.question}</div>`;
+            
+            if (screen.info) {
+                html += `<div class="info-text">${screen.info.replace(/\n/g, '<br>')}</div>`;
+            }
+            
+            if (screen.isInput) {
+                html += `
+                    <div class="input-group">
+                        <label>Stock Symbol</label>
+                        <input type="text" id="stockInput" placeholder="e.g., TSLA" maxlength="10" />
+                    </div>
+                    <button class="btn btn-primary" onclick="submitStock()">
+                        <span class="icon">→</span>
+                        <span>Continue</span>
+                    </button>
+                `;
+            }
+            else if (screen.isTimeSelect) {
+                html += `
+                    <div class="input-group">
+                        <label>Trading Time</label>
+                        <select id="timeSelect">
+                            <option value="">Select time...</option>
+                            ${generateTimeOptions()}
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitTime()">
+                        <span class="icon">→</span>
+                        <span>Continue</span>
+                    </button>
+                `;
+            }
+            else if (screen.isPhotoUpload) {
+                html += `
+                    <div class="warning-box">
+                        <h3>⚠️ Make sure your screenshot includes:</h3>
+                        <ul>
+                            <li>✅ Entry line</li>
+                            <li>✅ Stop loss</li>
+                            <li>✅ Take profit</li>
+                        </ul>
+                    </div>
+                    <div class="input-group">
+                        <label>📸 Upload Chart Screenshot</label>
+                        <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto()" />
+                    </div>
+                    <div id="photoPreview" class="photo-preview"></div>
+                    <button class="btn btn-primary" onclick="submitPhoto()">
+                        <span class="icon">→</span>
+                        <span>Continue</span>
+                    </button>
+                    <div class="skip-photo">
+                        <a href="#" onclick="skipPhoto(); return false;">Skip for now (add later)</a>
+                    </div>
+                `;
+            }
+            else if (screen.isOutcome) {
+                currentTrade.scenario = screen.scenario;
+                currentTrade.scenarioName = screen.scenarioName;
+                currentTrade.successRate = screen.successRate;
+                
+                html += `
+                    <div class="trade-summary">
+                        <div class="trade-summary-item"><strong>Stock:</strong> ${currentTrade.stock}</div>
+                        <div class="trade-summary-item"><strong>Time:</strong> ${currentTrade.time}</div>
+                        <div class="trade-summary-item"><strong>Scenario ${screen.scenario}:</strong> ${screen.scenarioName}</div>
+                        <div class="trade-summary-item"><strong>Expected:</strong> ${screen.successRate}</div>
+                        ${currentTrade.photo ? '<div class="trade-summary-item"><strong>Screenshot:</strong> ✅ Added</div>' : ''}
+                    </div>
+                    <div class="options">
+                        <button class="btn btn-success" onclick="submitOutcome(true)">
+                            <span class="icon">✓</span>
+                            <span>Yes, It Worked</span>
+                        </button>
+                        <button class="btn btn-danger" onclick="submitOutcome(false)">
+                            <span class="icon">✗</span>
+                            <span>No, It Failed</span>
+                        </button>
+                    </div>
+                `;
+            }
+            else if (screen.isSaved) {
+                html += `
+                    <div class="saved-message">
+                        Trade saved successfully! 🎉
+                    </div>
+                    <div class="trade-summary">
+                        <div class="trade-summary-item"><strong>Stock:</strong> ${currentTrade.stock}</div>
+                        <div class="trade-summary-item"><strong>Time:</strong> ${currentTrade.time}</div>
+                        <div class="trade-summary-item"><strong>Scenario:</strong> ${currentTrade.scenarioName}</div>
+                        <div class="trade-summary-item"><strong>Result:</strong> ${currentTrade.worked ? '✓ Worked' : '✗ Failed'}</div>
+                        <div class="trade-summary-item"><strong>Date:</strong> ${currentTrade.date}</div>
+                        ${currentTrade.photo ? '<div class="trade-summary-item"><strong>Screenshot:</strong> ✅ Saved</div>' : ''}
+                        ${currentTrade.notes ? `<div class="trade-summary-item"><strong>Notes:</strong> ${currentTrade.notes}</div>` : ''}
+                    </div>
+                    <button class="btn btn-primary" onclick="reset()">Log Another Trade</button>
+                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="showStats()">View Stats</button>
+                `;
+            }
+            else {
+                html += '<div class="options">';
+                screen.options.forEach(option => {
+                    const colorClass = option.color ? `btn-${option.color}` : 'btn-primary';
+                    const badge = option.badge ? `<span class="success-badge">${option.badge}</span>` : '';
+                    html += `
+                        <button class="btn ${colorClass}" onclick="showScreen('${option.action}')">
+                            <span class="icon">${option.icon}</span>
+                            <span>${option.text}</span>
+                            ${badge}
+                        </button>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            if (currentPath.length > 1 && !screen.isSaved) {
+                html += '<button class="btn back-btn" onclick="goBack()">← Back</button>';
+            }
+            
+            container.innerHTML = html;
+            
+            // Apply custom content and make editable if in edit mode
+            setTimeout(() => {
+                applyCustomContent();
+                if (editMode) makeEditable();
+            }, 50);
+            
+            if (screen.isInput) {
+                setTimeout(() => {
+                    document.getElementById('stockInput').focus();
+                }, 100);
+            }
+        }
+        
+        function submitStock() {
+            const input = document.getElementById('stockInput').value.trim().toUpperCase();
+            if (input) {
+                currentTrade.stock = input;
+                showScreen('timeSelect');
+            } else {
+                alert('Please enter a stock ticker');
+            }
+        }
+        
+        function generateTimeOptions() {
+            let options = '';
+            for (let hour = 0; hour < 24; hour++) {
+                for (let minute of [0, 30]) {
+                    let displayHour = hour;
+                    let period = 'AM';
+                    
+                    if (hour === 0) {
+                        displayHour = 12;
+                    } else if (hour === 12) {
+                        displayHour = 12;
+                        period = 'PM';
+                    } else if (hour > 12) {
+                        displayHour = hour - 12;
+                        period = 'PM';
+                    }
+                    
+                    const timeStr = `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+                    options += `<option value="${timeStr}">${timeStr}</option>`;
+                }
+            }
+            return options;
+        }
+        
+        function submitTime() {
+            const select = document.getElementById('timeSelect');
+            const time = select.value;
+            if (time) {
+                currentTrade.time = time;
+                showScreen('photoUpload');
+            } else {
+                alert('Please select a time');
+            }
+        }
+        
+        function previewPhoto() {
+            const input = document.getElementById('photoInput');
+            const preview = document.getElementById('photoPreview');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    preview.innerHTML = '<div class="error-message">⚠️ Photo is large. Compressing...</div>';
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    compressImage(e.target.result, function(compressed) {
+                        preview.innerHTML = `<img src="${compressed}" alt="Chart preview">`;
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function compressImage(base64, callback) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                const maxWidth = 1200;
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                callback(compressed);
+            };
+            img.src = base64;
+        }
+        
+        function submitPhoto() {
+            const input = document.getElementById('photoInput');
+            const preview = document.getElementById('photoPreview');
+            
+            if (input.files && input.files[0]) {
+                preview.innerHTML = '<div class="loading"><div class="spinner"></div>Processing photo...</div>';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    compressImage(e.target.result, function(compressed) {
+                        currentTrade.photo = compressed;
+                        showScreen('firstCandle');
+                    });
+                };
+                reader.onerror = function() {
+                    preview.innerHTML = '<div class="error-message">❌ Error loading photo. Please try again.</div>';
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                showScreen('firstCandle');
+            }
+        }
+        
+        function skipPhoto() {
+            currentTrade.photo = null;
+            showScreen('firstCandle');
+        }
+        
+        function submitOutcome(worked) {
+            currentTrade.worked = worked;
+            currentTrade.date = new Date().toLocaleString();
+            saveTrade();
+            showScreen('saved');
+        }
+        
+        async function saveTrade() {
+            try {
+                await addTrade(currentTrade);
+            } catch (e) {
+                alert('Error saving trade: ' + e.message);
+                console.error('Storage error:', e);
+            }
+        }
+        
+        function goBack() {
+            currentPath.pop();
+            const previous = currentPath.pop();
+            showScreen(previous || 'start');
+        }
+        
+        function reset() {
+            currentPath = [];
+            currentTrade = {
+                stock: '',
+                time: '',
+                scenario: '',
+                scenarioName: '',
+                successRate: '',
+                worked: null,
+                date: null,
+                photo: null,
+                notes: ''
+            };
+            showScreen('start');
+        }
+        
+        async function showStats() {
+            const trades = await getAllTrades();
+            const modal = document.getElementById('statsModal');
+            const content = document.getElementById('statsContent');
+            
+            // Get storage usage
+            const storage = await getStorageEstimate();
+            
+            if (trades.length === 0) {
+                let html = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No trades logged yet. Start tracking your trades!</div>';
+                
+                // Show storage info even with no trades - at the bottom
+                if (storage) {
+                    html += `
+                        <div class="stat-card" style="border-color: ${storage.percentUsed > 50 ? '#f59e0b' : '#8b5cf6'}; margin-top: 30px;">
+                            <div class="stat-title">💾 Storage Usage</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                                <div style="font-size: 0.9em; color: var(--text-secondary);">
+                                    <strong>${storage.usageInMB} MB</strong> / ${storage.quotaInMB} MB
+                                </div>
+                                <div style="font-size: 0.85em; color: var(--purple-light); font-weight: 600;">
+                                    ${storage.percentUsed}% used
+                                </div>
+                            </div>
+                            <div style="background: rgba(31, 23, 51, 0.5); height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.2);">
+                                <div style="background: linear-gradient(90deg, var(--purple-primary), var(--purple-dark)); height: 100%; width: ${storage.percentUsed}%; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = html;
+            } else {
+                const totalTrades = trades.length;
+                const wins = trades.filter(t => t.worked).length;
+                const losses = totalTrades - wins;
+                const winRate = ((wins / totalTrades) * 100).toFixed(1);
+                
+                const scenarios = {
+                    '1': { name: 'Red → Stays in Middle', trades: [], wins: 0 },
+                    '2': { name: 'Red → Below Original', trades: [], wins: 0 },
+                    '3': { name: 'Green → Near Top', trades: [], wins: 0 },
+                    '4': { name: 'Green → Middle Flag', trades: [], wins: 0 }
+                };
+                
+                trades.forEach(trade => {
+                    if (scenarios[trade.scenario]) {
+                        scenarios[trade.scenario].trades.push(trade);
+                        if (trade.worked) scenarios[trade.scenario].wins++;
+                    }
+                });
+                
+                let html = `
+                    <div class="stat-card">
+                        <div class="stat-title">Total Trades</div>
+                        <div class="stat-value">${totalTrades}</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #10b981;">
+                        <div class="stat-title">Win Rate</div>
+                        <div class="stat-value" style="color: #10b981;">${winRate}%</div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="stat-card" style="flex: 1; border-color: #10b981;">
+                            <div class="stat-title">Wins</div>
+                            <div class="stat-value" style="color: #10b981;">${wins}</div>
+                        </div>
+                        <div class="stat-card" style="flex: 1; border-color: #ef4444;">
+                            <div class="stat-title">Losses</div>
+                            <div class="stat-value" style="color: #ef4444;">${losses}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin: 20px 0;">
+                        <button class="btn btn-primary" style="flex: 1; margin: 0;" onclick="exportData()">📤 Export</button>
+                        <button class="btn btn-primary" style="flex: 1; margin: 0;" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                    </div>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    
+                    <h3 style="margin: 25px 0 15px 0; color: var(--text-primary);">📊 Performance by Scenario</h3>
+                    <div class="scenario-accordion" id="scenarioAccordion">
+                `;
+                
+                Object.keys(scenarios).forEach(key => {
+                    const s = scenarios[key];
+                    if (s.trades.length > 0) {
+                        const rate = ((s.wins / s.trades.length) * 100).toFixed(1);
+                        const lossRate = (100 - parseFloat(rate)).toFixed(1);
+                        
+                        html += `
+                            <div class="scenario-item">
+                                <div class="scenario-header" onclick="toggleScenario('${key}')">
+                                    <div class="scenario-title">
+                                        <div class="scenario-name">Scenario ${key}: ${s.name}</div>
+                                        <div class="scenario-stats">${s.trades.length} trade${s.trades.length !== 1 ? 's' : ''} • ${rate}% win rate</div>
+                                        <div class="scenario-bar-container">
+                                            ${s.wins > 0 ? `<div class="scenario-bar-win" style="width: ${rate}%;"></div>` : ''}
+                                            ${(s.trades.length - s.wins) > 0 ? `<div class="scenario-bar-loss" style="width: ${lossRate}%;"></div>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="scenario-toggle" id="toggle-${key}">▼</div>
+                                </div>
+                                <div class="scenario-content" id="content-${key}">
+                                    <div class="trade-list">
+                                        ${renderScenarioTrades(s.trades)}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += `</div>`;
+                
+                // Storage usage card at the bottom
+                if (storage) {
+                    const storageColor = storage.percentUsed > 80 ? '#ef4444' : storage.percentUsed > 50 ? '#f59e0b' : '#8b5cf6';
+                    
+                    html += `
+                        <div class="stat-card" style="border-color: ${storageColor}; margin-top: 30px;">
+                            <div class="stat-title">💾 Storage Usage</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                                <div style="font-size: 0.9em; color: var(--text-secondary);">
+                                    <strong>${storage.usageInMB} MB</strong> of ${storage.quotaInMB} MB
+                                </div>
+                                <div style="font-size: 0.85em; color: ${storageColor}; font-weight: 600;">
+                                    ${storage.percentUsed}% used
+                                </div>
+                            </div>
+                            <div style="background: rgba(31, 23, 51, 0.5); height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; border: 1px solid rgba(139, 92, 246, 0.2);">
+                                <div style="background: ${storageColor}; height: 100%; width: ${storage.percentUsed}%; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = html;
+            }
+            
+            modal.classList.add('active');
+            
+            // Set up modal close handlers
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeStats();
+                }
+            };
+        }
+        
+        function renderScenarioTrades(trades) {
+            if (trades.length === 0) {
+                return '<div class="no-trades-accordion">No trades for this scenario yet</div>';
+            }
+
+            return trades.map(trade => {
+                const photoHtml = trade.photo ? `
+                    <div class="trade-images">
+                        <img src="${trade.photo}" class="trade-image" alt="Trade chart">
+                    </div>
+                ` : '';
+                
+                const notesHtml = trade.notes ? `
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(139, 92, 246, 0.1); border-radius: 6px; font-size: 0.85em; color: var(--text-secondary); border-left: 2px solid var(--purple-primary);">
+                        📝 ${trade.notes}
+                    </div>
+                ` : '';
+                
+                return `
+                    <div class="trade-card" onclick="editTrade(${trade.id})">
+                        <div class="trade-header">
+                            <div class="trade-stock">${trade.stock}</div>
+                            <div class="trade-result ${trade.worked ? 'win' : 'loss'}">
+                                ${trade.worked ? '✓ Win' : '✗ Loss'}
+                            </div>
+                        </div>
+                        <div class="trade-time">⏰ ${trade.time || 'N/A'} • ${trade.date || 'N/A'}</div>
+                        ${notesHtml}
+                        ${photoHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        let currentOpenScenario = null;
+        
+        function toggleScenario(scenarioKey) {
+            const content = document.getElementById(`content-${scenarioKey}`);
+            const toggle = document.getElementById(`toggle-${scenarioKey}`);
+            
+            if (!content || !toggle) return;
+
+            // Close previously open scenario
+            if (currentOpenScenario && currentOpenScenario !== scenarioKey) {
+                const prevContent = document.getElementById(`content-${currentOpenScenario}`);
+                const prevToggle = document.getElementById(`toggle-${currentOpenScenario}`);
+                if (prevContent && prevToggle) {
+                    prevContent.classList.remove('open');
+                    prevToggle.classList.remove('open');
+                }
+            }
+
+            // Toggle current scenario
+            const isOpening = !content.classList.contains('open');
+            content.classList.toggle('open');
+            toggle.classList.toggle('open');
+
+            currentOpenScenario = isOpening ? scenarioKey : null;
+        }
+
+        
+        function closeStats() {
+            document.getElementById('statsModal').classList.remove('active');
+        }
+        
+        async function viewPhoto(id) {
+            const trades = await getAllTrades();
+            const trade = trades.find(t => t.id === id);
+            
+            if (trade && trade.photo) {
+                const modal = document.getElementById('photoModal');
+                const content = document.getElementById('photoModalContent');
+                content.innerHTML = `<img src="${trade.photo}" style="width: 100%; border-radius: 12px;">`;
+                modal.classList.add('active');
+            }
+        }
+        
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+        
+        async function editTrade(id) {
+            const trades = await getAllTrades();
+            const trade = trades.find(t => t.id === id);
+            if (!trade) return;
+            
+            const modal = document.getElementById('editModal');
+            const content = document.getElementById('editContent');
+            
+            const html = `
+                <div class="input-group">
+                    <label>Stock Symbol</label>
+                    <input type="text" id="editStock" class="edit-input" value="${trade.stock}" style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <label>Time</label>
+                    <select id="editTime" class="edit-input">
+                        ${generateTimeOptions()}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Scenario</label>
+                    <select id="editScenario" class="edit-input">
+                        <option value="1|Red → Stays in Middle|LIKELY" ${trade.scenario === '1' ? 'selected' : ''}>Scenario 1: Red → Stays in Middle</option>
+                        <option value="2|Red → Below Original Low|50/50 UNLIKELY" ${trade.scenario === '2' ? 'selected' : ''}>Scenario 2: Red → Below Original</option>
+                        <option value="3|Green → Doji Near Top|70% VERY LIKELY" ${trade.scenario === '3' ? 'selected' : ''}>Scenario 3: Green → Near Top</option>
+                        <option value="4|Green → Doji in Middle|80% SHOULD WORK" ${trade.scenario === '4' ? 'selected' : ''}>Scenario 4: Green → Middle</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Result</label>
+                    <select id="editWorked" class="edit-input">
+                        <option value="true" ${trade.worked ? 'selected' : ''}>✓ Worked</option>
+                        <option value="false" ${!trade.worked ? 'selected' : ''}>✗ Failed</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>📝 Notes (Add emojis, observations, etc.)</label>
+                    <textarea id="editNotes" class="edit-input" rows="4" placeholder="Add your notes here... You can use emojis! 🚀📈💡" style="text-align: left; resize: vertical;">${trade.notes || ''}</textarea>
+                </div>
+                <div class="warning-box">
+                    <h3>⚠️ Make sure your screenshot includes:</h3>
+                    <ul>
+                        <li>✅ Entry line</li>
+                        <li>✅ Stop loss</li>
+                        <li>✅ Take profit</li>
+                    </ul>
+                </div>
+                <div class="input-group">
+                    <label>📸 Chart Screenshot</label>
+                    <input type="file" id="editPhoto" class="edit-input" accept="image/*" onchange="previewEditPhoto()">
+                </div>
+                ${trade.photo ? `<div id="editPhotoPreview" class="photo-preview"><img src="${trade.photo}" alt="Current chart"></div>` : '<div id="editPhotoPreview" class="photo-preview"></div>'}
+                <div class="edit-buttons">
+                    <button class="btn btn-success" style="flex: 1; margin: 0;" onclick="saveEdit(${id})">
+                        💾 Save
+                    </button>
+                    <button class="btn btn-gray" style="flex: 1; margin: 0;" onclick="closeEdit()">
+                        Cancel
+                    </button>
+                </div>
+                <button class="btn btn-danger" style="width: 100%; margin-top: 15px;" onclick="deleteTradeById(${id})">
+                    🗑️ Delete Trade
+                </button>
+            `;
+            
+            content.innerHTML = html;
+            document.getElementById('editTime').value = trade.time;
+            modal.classList.add('active');
+            
+            // Apply custom content and make editable if in edit mode
+            setTimeout(() => {
+                applyCustomContent();
+                if (editMode) makeEditable();
+            }, 50);
+        }
+        
+        function previewEditPhoto() {
+            const input = document.getElementById('editPhoto');
+            const preview = document.getElementById('editPhotoPreview');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    preview.innerHTML = '<div class="error-message">⚠️ Photo is large. Compressing...</div>';
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    compressImage(e.target.result, function(compressed) {
+                        preview.innerHTML = `<img src="${compressed}" alt="Chart preview">`;
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        async function saveEdit(id) {
+            const stock = document.getElementById('editStock').value.trim().toUpperCase();
+            const time = document.getElementById('editTime').value;
+            const scenarioData = document.getElementById('editScenario').value.split('|');
+            const worked = document.getElementById('editWorked').value === 'true';
+            const notes = document.getElementById('editNotes').value.trim();
+            const photoInput = document.getElementById('editPhoto');
+            
+            if (!stock || !time) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            const trades = await getAllTrades();
+            const existingTrade = trades.find(t => t.id === id);
+            
+            if (photoInput.files && photoInput.files[0]) {
+                const preview = document.getElementById('editPhotoPreview');
+                preview.innerHTML = '<div class="loading"><div class="spinner"></div>Saving photo...</div>';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    compressImage(e.target.result, async function(compressed) {
+                        const updatedTrade = {
+                            ...existingTrade,
+                            stock: stock,
+                            time: time,
+                            scenario: scenarioData[0],
+                            scenarioName: scenarioData[1],
+                            successRate: scenarioData[2],
+                            worked: worked,
+                            photo: compressed,
+                            notes: notes
+                        };
+                        
+                        try {
+                            await updateTrade(id, updatedTrade);
+                            closeEdit();
+                            showStats();
+                        } catch (e) {
+                            preview.innerHTML = '<div class="error-message">❌ Error saving. Please try again.</div>';
+                        }
+                    });
+                };
+                reader.onerror = function() {
+                    preview.innerHTML = '<div class="error-message">❌ Error loading photo. Please try again.</div>';
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                const updatedTrade = {
+                    ...existingTrade,
+                    stock: stock,
+                    time: time,
+                    scenario: scenarioData[0],
+                    scenarioName: scenarioData[1],
+                    successRate: scenarioData[2],
+                    worked: worked,
+                    notes: notes
+                };
+                
+                try {
+                    await updateTrade(id, updatedTrade);
+                    closeEdit();
+                    showStats();
+                } catch (e) {
+                    alert('Error saving trade: ' + e.message);
+                }
+            }
+        }
+        
+        async function deleteTradeById(id) {
+            if (confirm('Are you sure you want to delete this trade?')) {
+                try {
+                    await deleteTrade(id);
+                    closeEdit();
+                    showStats();
+                } catch (e) {
+                    alert('Error deleting trade: ' + e.message);
+                }
+            }
+        }
+        
+        function closeEdit() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+        
+        async function clearAllData() {
+            if (confirm('Are you sure you want to delete all trade data? This cannot be undone.')) {
+                try {
+                    await clearAllTrades();
+                    closeStats();
+                    alert('All data cleared!');
+                } catch (e) {
+                    alert('Error clearing data: ' + e.message);
+                }
+            }
+        }
+        
+        async function exportData() {
+            const trades = await getAllTrades();
+            
+            if (trades.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(trades, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `doji-trades-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert('Data exported! Check your Downloads folder.');
+        }
+        
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importedTrades = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedTrades)) {
+                        alert('Invalid file format!');
+                        return;
+                    }
+                    
+                    // Add each trade to IndexedDB
+                    let count = 0;
+                    for (const trade of importedTrades) {
+                        // Remove the old ID if it exists
+                        delete trade.id;
+                        await addTrade(trade);
+                        count++;
+                    }
+                    
+                    alert(`Successfully imported ${count} trades!`);
+                    closeStats();
+                    showStats();
+                } catch (error) {
+                    alert('Error reading file. Please make sure it\'s a valid trade data file.');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // Sidebar toggle functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        
+        function closeSidebarMobile() {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.remove('open');
+            }
+        }
+        
+        function openInSafari() {
+            // Get the current page URL and open in Safari/browser
+            const currentUrl = window.location.href;
+            window.location.href = currentUrl;
+        }
+        
+        function showHistory() {
+            showStats();
+        }
+        
+        // Toggle trade history visibility
+        function toggleTradeHistory() {
+            const content = document.getElementById('tradeHistoryContent');
+            const toggle = document.getElementById('tradeHistoryToggle');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▼';
+            }
+        }
+        
+        // Initialize the database when the page loads
+        initDB().then(() => {
+            loadCustomContent();
+            showScreen('start');
+            setTimeout(() => {
+                applyCustomContent();
+                if (editMode) makeEditable();
+            }, 100);
+        }).catch(error => {
+            console.error('Failed to initialize database:', error);
+            alert('Error initializing storage. Please refresh the page.');
+        });
+    </script>
+</body>
+</html>
